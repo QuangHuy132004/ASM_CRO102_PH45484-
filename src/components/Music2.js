@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native'; // For navigation
 
 function Music2() {
   const [isPlayerReady, setIsPlayerReady] = useState(false);
+  const [currentTrackInfo, setCurrentTrackInfo] = useState({});
   const navigation = useNavigation(); // For navigation
   
   useEffect(() => {
@@ -26,9 +27,22 @@ function Music2() {
         await addTracks();
       }
       setIsPlayerReady(isSetup);
+      setTrackInfo(); // Lấy thông tin bài nhạc hiện tại khi khởi động
     }
     setup();
   }, []);
+
+  useTrackPlayerEvents([Event.PlaybackTrackChanged], async (event) => {
+    if (event.state === State.PlaybackTrackChanged) {
+      setTrackInfo(); // Cập nhật thông tin bài nhạc hiện tại khi thay đổi
+    }
+  });
+
+  async function setTrackInfo() {
+    const trackId = await TrackPlayer.getCurrentTrack();
+    const track = await TrackPlayer.getTrack(trackId);
+    setCurrentTrackInfo(track);
+  }
 
   function Playlist() {
     const [queue, setQueue] = useState([]);
@@ -50,21 +64,29 @@ function Music2() {
       }
     });
 
-    function PlaylistItem({ index, title, isCurrent }) {
-      function handleItemPress() {
-        TrackPlayer.skip(index);
+    function PlaylistItem({ index, title, artist, artwork, isCurrent }) {
+      async function handleItemPress() {
+        await TrackPlayer.skip(index);
+        setTrackInfo(); // Cập nhật thông tin bài nhạc hiện tại khi chọn bài nhạc
       }
 
       return (
-        <TouchableOpacity onPress={handleItemPress}>
-          <Text
-            style={{
-              ...styles.playlistItem,
-              backgroundColor: isCurrent ? '#666' : 'transparent',
-              color: '#FFF'
-            }}>
-            {title}
-          </Text>
+        <TouchableOpacity onPress={handleItemPress} style={styles.playlistItemContainer}>
+          {artwork ? (
+            <Image source={{ uri: artwork }} style={styles.artwork} />
+          ) : (
+            <View style={styles.artworkPlaceholder} />
+          )}
+          <View style={styles.textContainer}>
+            <Text
+              style={{
+                ...styles.playlistItemTitle,
+                color: isCurrent ? '#407332' : '#FFF'
+              }}>
+              {title}
+            </Text>
+            <Text style={styles.playlistItemArtist}>{artist}</Text>
+          </View>
         </TouchableOpacity>
       );
     }
@@ -77,6 +99,8 @@ function Music2() {
             <PlaylistItem
               index={index}
               title={item.title}
+              artist={item.artist}
+              artwork={item.artwork}
               isCurrent={currentTrack === index}
             />
           )}
@@ -151,28 +175,13 @@ function Music2() {
   }
 
   function Header() {
-    const [info, setInfo] = useState({});
-
-    useEffect(() => {
-      setTrackInfo();
-    }, []);
-
-    useTrackPlayerEvents([Event.PlaybackTrackChanged], (event) => {
-      if (event.state === State.PlaybackTrackChanged) {
-        setTrackInfo();
-      }
-    });
-
-    async function setTrackInfo() {
-      const track = await TrackPlayer.getCurrentTrack();
-      const info = await TrackPlayer.getTrack(track);
-      setInfo(info);
-    }
-
     return (
       <View style={styles.header}>
-        <Text style={styles.songTitle}>{info.title}</Text>
-        <Text style={styles.artistName}>{info.artist}</Text>
+        <Text style={styles.songTitle}>{currentTrackInfo.title}</Text>
+        {/* <Text style={styles.artistName}>{currentTrackInfo.artist}</Text> */}
+        {currentTrackInfo.artwork && (
+          <Image source={{ uri: currentTrackInfo.artwork }} style={styles.headerArtwork} />
+        )}
       </View>
     );
   }
@@ -207,7 +216,7 @@ function Music2() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#D7D9A9' // Reverted background color
+    backgroundColor: '#D7D9A9',
   },
   headerContainer: {
     backgroundColor: '#407332',
@@ -215,7 +224,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', // To space out items evenly
+    justifyContent: 'space-between',
   },
   goBackButton: {
     width: 30,
@@ -231,64 +240,83 @@ const styles = StyleSheet.create({
   },
   playlistContainer: {
     flex: 1,
-    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  playlistItemContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20
+    backgroundColor: '#3A3A3A',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
   },
-  playlist: {
-    width: '100%'
+  artwork: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
   },
-  playlistItem: {
+  artworkPlaceholder: {
+    width: 50,
+    height: 50,
+    backgroundColor: '#555',
+    borderRadius: 8,
+  },
+  textContainer: {
+    marginLeft: 10,
+    flex: 1,
+  },
+  playlistItemTitle: {
     fontSize: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-    paddingLeft: 16,
-    paddingRight: 16,
-    borderRadius: 4,
-    color: '#FFF', // White text color
-    textAlign: 'center'
+    fontWeight: 'bold',
+  },
+  playlistItemArtist: {
+    fontSize: 14,
+    color: '#AAA',
   },
   trackProgressContainer: {
     alignItems: 'center',
-    marginVertical: 20
+    marginVertical: 20,
   },
   trackProgressText: {
     fontSize: 24,
-    color: '#FFF' // White text color
+    color: '#000',
+    fontWeight: 'bold',
   },
   slider: {
     width: 300,
     height: 40,
-    marginTop: 10
+    marginTop: 10,
   },
   controls: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 20
+    marginVertical: 20,
   },
   controlIcon: {
     width: 50,
     height: 50,
-    marginHorizontal: 10
+    marginHorizontal: 10,
   },
   songTitle: {
-    fontSize: 32,
-    marginTop: 20,
-    color: '#FFF', // White text color
-    textAlign: 'center'
+    fontSize: 30,
+    marginTop: 10,
+    marginBottom: 10,
+    color: '#000',
+    textAlign: 'center',
   },
   artistName: {
     fontSize: 24,
-    color: '#FFF', // White text color
-    textAlign: 'center'
+    color: '#000',
+    textAlign: 'center',
   },
-  vinylImage: {
-    width: 100,
-    height: 100,
-    marginVertical: 20
-  }
+  headerArtwork: {
+    width: 220,
+    height: 220,
+    borderRadius: 8,
+    alignSelf: 'center',
+    marginBottom: 10,
+  },
 });
 
 export default Music2;
