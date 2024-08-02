@@ -2,6 +2,7 @@ import { View, Text, TextInput, TouchableOpacity, Image, Alert } from 'react-nat
 import React, { useState, useEffect } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import LinearGradient from 'react-native-linear-gradient';
 
 const BMI = ({ navigation }) => {
     const [weight, setWeight] = useState('');
@@ -199,7 +200,7 @@ const BMI = ({ navigation }) => {
                 </View>
             </View>
 
-            <View style={{
+            <LinearGradient colors={['#407332', '#90EE90']} style={{
                 width: '90%',
                 height: 485,
                 backgroundColor: '#fff',
@@ -214,7 +215,7 @@ const BMI = ({ navigation }) => {
                 <Text style={{
                     fontSize: 24,
                     fontWeight: '600',
-                    color: '#407332',
+                    color: '#fff',
                     alignSelf: 'center',
                     marginTop: 5,
                 }}>BMI Results</Text>
@@ -223,21 +224,21 @@ const BMI = ({ navigation }) => {
                         <Text style={{
                             fontSize: 20,
                             fontWeight: '600',
-                            color: '#407332',
+                            color: '#fff',
                             alignSelf: 'center',
                             marginTop: 20,
                         }}>Your BMI: {bmiResult}</Text>
                         <Text style={{
                             fontSize: 20,
                             fontWeight: '600',
-                            color: '#407332',
+                            color: '#fff',
                             alignSelf: 'center',
                             marginTop: 20,
                         }}>{bmiCategory}</Text>
                         <Text style={{
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: '600',
-                            color: '#407332',
+                            color: '#fff',
                             alignSelf: 'center',
                             marginTop: 20,
                             textAlign: 'center',
@@ -246,16 +247,16 @@ const BMI = ({ navigation }) => {
                         {/* Hiển thị menu */}
                         {menu.breakfast && (
                             <View style={{ marginTop: 20 }}>
-                                <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#407332' }}>Thực đơn ăn uống:</Text>
-                                <Text style={{ fontSize: 16, color: '#407332' }}>Sáng: {menu.breakfast}</Text>
-                                <Text style={{ fontSize: 16, color: '#407332' }}>Trưa: {menu.lunch}</Text>
-                                <Text style={{ fontSize: 16, color: '#407332' }}>Tối: {menu.dinner}</Text>
-                                <Text style={{ fontSize: 16, color: '#407332' }}>Snack: {menu.snacks}</Text>
+                                <Text style={{ fontSize: 19, fontWeight: 'bold', color: '#fff' }}>Thực đơn ăn uống:</Text>
+                                <Text style={{ fontSize: 17, color: '#fff' }}>Sáng: {menu.breakfast}</Text>
+                                <Text style={{ fontSize: 17, color: '#fff' }}>Trưa: {menu.lunch}</Text>
+                                <Text style={{ fontSize: 17, color: '#fff' }}>Tối: {menu.dinner}</Text>
+                                <Text style={{ fontSize: 17, color: '#fff' }}>Snack: {menu.snacks}</Text>
                             </View>
                         )}
                     </>
                 )}
-            </View>
+            </LinearGradient>
 
             <View style={{
                 marginTop: 60,

@@ -1,130 +1,214 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  Alert
+} from 'react-native';
+import {
+  accelerometer,
+  setUpdateIntervalForType,
+  SensorTypes,
+} from 'react-native-sensors';
+import { request, PERMISSIONS } from 'react-native-permissions';
+import { filter } from 'rxjs/operators';
 import firestore from '@react-native-firebase/firestore';
-import { Accelerometer } from 'react-native-sensors';
-import auth from '@react-native-firebase/auth';
+import LinearGradient from 'react-native-linear-gradient';
 
 const Run = ({ navigation }) => {
   const [steps, setSteps] = useState(0);
-  const [targetSteps, setTargetSteps] = useState(10000); // Mục tiêu số bước chân
-  const [isRunning, setIsRunning] = useState(false);
   const [subscription, setSubscription] = useState(null);
+  const [lastAcceleration, setLastAcceleration] = useState({ x: 0, y: 0, z: 0 });
+  const [goalReached, setGoalReached] = useState(false);
+  const [stepGoal, setStepGoal] = useState(null); 
+  const [inputGoal, setInputGoal] = useState('');
+  const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
-    if (isRunning) {
-      const accSubscription = new Accelerometer({
-        updateInterval: 100, // khoảng thời gian cập nhật, có thể điều chỉnh theo ý muốn
-      })
-      .then((observable) => {
-        observable.subscribe(({ x, y, z }) => {
-          const magnitude = Math.sqrt(x * x + y * y + z * z);
-          if (magnitude > 1.5) {
-            setSteps(prevSteps => prevSteps + 1);
-          }
-        });
-      })
-      .catch((error) => {
-        console.error('Accelerometer subscription error: ', error);
-      });
+    const requestPermission = async () => {
+      if (Platform.OS === 'android') {
+        const result = await request(PERMISSIONS.ANDROID.ACTIVITY_RECOGNITION);
+        if (result === 'granted') {
+          startAccelerometer();
+        }
+      } else {
+        startAccelerometer();
+      }
+    };
 
-      setSubscription(accSubscription);
-    } else {
-      subscription?.unsubscribe();
-    }
+    requestPermission();
 
     return () => {
-      subscription?.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
-  }, [isRunning]);
+  }, [subscription]);
 
-  const handleStart = async () => {
-    setSteps(0);
-    setIsRunning(true);
+  const startAccelerometer = () => {
+    setUpdateIntervalForType(SensorTypes.accelerometer, 100); // 100ms
+
+    const accelSubscription = accelerometer
+      .pipe(
+        filter(({ x, y, z }) => {
+          const acceleration = Math.sqrt(x * x + y * y + z * z);
+          return acceleration > 1.0;
+        }),
+      )
+      .subscribe(({ x, y, z }) => {
+        if (isRunning) {
+          const deltaX = Math.abs(x - lastAcceleration.x);
+          const deltaY = Math.abs(y - lastAcceleration.y);
+          const deltaZ = Math.abs(z - lastAcceleration.z);
+
+          if (deltaX > 1 || deltaY > 1 || deltaZ > 1) {
+            setSteps(prevSteps => prevSteps + 1);
+          }
+
+          setLastAcceleration({ x, y, z });
+        }
+      });
+
+    setSubscription(accelSubscription);
   };
 
-  const handleStop = async () => {
-    setIsRunning(false);
+  useEffect(() => {
+    if (stepGoal !== null && steps >= stepGoal && !goalReached) {
+      setGoalReached(true);
+      setIsRunning(false);
+      saveStepsToFirestore(steps);
+      Alert.alert(
+        'Chúc mừng!',
+        'Bạn đã đạt được mục tiêu của mình! Bạn có muốn đặt mục tiêu mới không?',
+        [
+          {
+            text: 'Có',
+            onPress: () => {
+              setStepGoal(null);
+              setSteps(0);
+              setGoalReached(false);
+              setInputGoal('');
+            },
+          },
+          {
+            text: 'Không',
+            onPress: () => {
+              setStepGoal(null);
+              setSteps(0);
+              setGoalReached(false);
+              setInputGoal('');
+            },
+          },
+        ]
+      );
+    }
+  }, [steps]);
 
+  const saveStepsToFirestore = async steps => {
     try {
-      await firestore().collection('runningData').add({
+      await firestore().collection('steps').add({
+        date: new Date().toISOString(),
         steps: steps,
-        timestamp: firestore.FieldValue.serverTimestamp(),
-        user: auth().currentUser.uid, // Lưu ID người dùng để tham khảo
+        goal: stepGoal,
       });
-      Alert.alert('Thành công', `Bạn đã đi ${steps} bước.`);
+      console.log('Đã lưu số bước vào Firestore thành công!');
     } catch (error) {
-      console.error('Không thể ghi dữ liệu: ', error);
-      Alert.alert('Lỗi', 'Không thể ghi dữ liệu của bạn. Vui lòng thử lại sau.');
+      console.error('Lỗi khi lưu số bước vào Firestore:', error);
     }
   };
 
-  const checkGoal = () => {
-    if (steps >= targetSteps) {
-      Alert.alert('Chúc mừng!', 'Bạn đã đạt được mục tiêu số bước chân!');
+  const handleSetGoal = () => {
+    const goal = parseInt(inputGoal);
+    if (!isNaN(goal) && goal > 0) {
+      setStepGoal(goal);
+      setGoalReached(false);
+      setSteps(0);
+      Alert.alert('Thành công', 'Đặt mục tiêu thành công!');
+    }
+  };
+
+  const handleStart = () => {
+    if (stepGoal !== null) {
+      setIsRunning(true);
     } else {
-      Alert.alert('Cố lên!', `Bạn chưa đạt được mục tiêu số bước chân. Mục tiêu còn ${targetSteps - steps} bước.`);
+      Alert.alert('Đặt mục tiêu trước', 'Vui lòng đặt mục tiêu trước khi bắt đầu.');
+    }
+  };
+
+  const handleStop = () => {
+    if (stepGoal !== null && isRunning && steps > 0) {
+      if (steps < stepGoal) {
+        Alert.alert('Rất tiếc', 'Bạn chưa đạt đủ mục tiêu.');
+      }
+      setIsRunning(false);
+      saveStepsToFirestore(steps);
+      setSteps(0); // Reset số bước về 0
+      setStepGoal(null); // Reset mục tiêu về 0
+    } else {
+      Alert.alert('Không thể dừng', 'Vui lòng đảm bảo bạn đã đặt mục tiêu, bắt đầu và có số bước lớn hơn 0.');
     }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Exercise Health</Text>
+        <Text style={styles.headerText}>Sức Khỏe Tập Luyện</Text>
       </View>
 
-      <View style={styles.contentContainer}>
-        <Text style={styles.header}>Chạy Bộ</Text>
-        <Text style={styles.steps}>Số bước chân: {steps}</Text>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleStart}
-        >
-          <Text style={styles.buttonText}>Bắt Đầu</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleStop}
-        >
-          <Text style={styles.buttonText}>Dừng</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={checkGoal}
-        >
-          <Text style={styles.buttonText}>Kiểm Tra Mục Tiêu</Text>
-        </TouchableOpacity>
+      <View style={styles.stepsContainer}>
+        <Text style={styles.stepsText}>Số bước:</Text>
+        <Text style={styles.stepsText}>{steps}</Text>
       </View>
+
+      <LinearGradient colors={['#407332', '#90EE90']} style={styles.goalContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Nhập mục tiêu số bước"
+          keyboardType="numeric"
+          value={inputGoal}
+          onChangeText={setInputGoal}
+        />
+        <TouchableOpacity onPress={handleSetGoal} style={styles.btn}>
+          <Text style={styles.btnText}>Đặt Mục Tiêu</Text>
+        </TouchableOpacity>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity onPress={handleStart} style={styles.startBtn}>
+            <Text style={styles.btnText}>Bắt đầu</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleStop} style={styles.stopBtn}>
+            <Text style={styles.btnText}>Dừng</Text>
+          </TouchableOpacity>
+        </View>
+
+        {goalReached && (
+          <View style={styles.goalMessage}>
+            <Text style={styles.goalMessageText}>
+              Chúc mừng bạn đã đạt được mục tiêu hôm nay!
+            </Text>
+          </View>
+        )}
+      </LinearGradient>
 
       <View style={styles.menuContainer}>
         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Image
-            style={styles.menuIcon}
-            source={require('../img/chatt.png')}
-          />
+          <Image style={styles.menuIcon} source={require('../img/chatt.png')} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Music')}>
-          <Image
-            style={styles.menuIcon}
-            source={require('../img/mind.png')}
-          />
+          <Image style={styles.menuIcon} source={require('../img/mind.png')} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Run')}>
-          <Image
-            style={styles.menuIcon}
-            source={require('../img/healthy.png')}
-          />
+          <Image style={styles.menuIcon} source={require('../img/healthy.png')} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('BMI')}>
-          <Image
-            style={styles.menuIcon}
-            source={require('../img/bmi.png')}
-          />
+          <Image style={styles.menuIcon} source={require('../img/bmi.png')} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-          <Image
-            style={styles.menuIcon}
-            source={require('../img/list.png')}
-          />
+          <Image style={styles.menuIcon} source={require('../img/list.png')} />
         </TouchableOpacity>
       </View>
     </View>
@@ -147,32 +231,93 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FEF9F3',
   },
-  contentContainer: {
-    flex: 1,
+  stepsContainer: {
+    flexDirection: 'column',
+    borderColor: '#407332',
     justifyContent: 'center',
+    borderWidth: 10,
+    width: 250,
+    height: 250,
+    marginLeft: 77,
+    borderRadius: 125,
     alignItems: 'center',
+    marginTop: 60,
+    marginBottom: 10,
   },
-  header: {
-    fontSize: 24,
+  stepsText: {
+    fontSize: 40,
     fontWeight: 'bold',
-    marginBottom: 20,
+    color: 'white',
+    textAlign: 'center',
   },
-  steps: {
-    fontSize: 18,
-    marginBottom: 20,
+  goalContainer: {
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    margin: 10,
+    padding: 20,
+    height: 314,
+    width: 360,
+    alignSelf: 'center',
+    borderRadius: 30,
+    marginBottom: 39,
   },
-  button: {
+  input: {
+    height: 60,
+    borderColor: '#fff',
+    borderWidth: 2,
+    borderRadius: 5,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    color: '#fff',
+    fontSize: 20,
+  },
+  btn: {
     backgroundColor: '#407332',
     padding: 15,
+    borderRadius: 30,
+    width: 150,
+    height: 60,
+    alignSelf: 'center',
+    margin: 10,
+  },
+  btnText: {
+    textAlign: 'center',
+    color: 'white',
+    fontSize: 17,
+  },
+  goalMessage: {
+    marginTop: 20,
+    padding: 20,
     borderRadius: 10,
-    marginVertical: 10,
-    width: '80%',
+    backgroundColor: '#4CAF50',
     alignItems: 'center',
   },
-  buttonText: {
-    color: '#FEF9F3',
-    fontSize: 16,
-    fontWeight: 'bold',
+  goalMessageText: {
+    fontSize: 20,
+    color: 'white',
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+  },
+  startBtn: {
+    backgroundColor: '#4CAF50',
+    padding: 15,
+    borderRadius: 30,
+    width: 130,
+    height: 60,
+    alignItems: 'center',
+    margin: 10,
+  },
+  stopBtn: {
+    backgroundColor: '#D32F2F',
+    padding: 15,
+    borderRadius: 30,
+    width: 130,
+    height: 60,
+    alignItems: 'center',
+    margin: 10,
   },
   menuContainer: {
     flexDirection: 'row',
