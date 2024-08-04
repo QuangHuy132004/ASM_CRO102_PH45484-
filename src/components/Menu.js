@@ -1,8 +1,29 @@
-import { View, Text, TouchableOpacity, Image } from 'react-native';
-import React from 'react';
+import { View, Text, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 const Menu = ({ navigation }) => {
+    const [fullName, setFullName] = useState('');
+    const [role, setRole] = useState('');
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const currentUser = auth().currentUser;
+            if (currentUser) {
+                const userDoc = await firestore().collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    setFullName(userDoc.data().fullname);
+                    setRole(userDoc.data().role);
+                }
+            }
+            setLoading(false);
+        };
+
+        fetchUserData();
+    }, []);
+
     const handleLogout = () => {
         auth()
             .signOut()
@@ -13,6 +34,14 @@ const Menu = ({ navigation }) => {
             .catch(error => {
                 console.error('Failed to log out: ', error);
             });
+    };
+
+    const handleCounselingNavigation = () => {
+        if (role === 'Expert') {
+            navigation.navigate('Counseling2');
+        } else {
+            navigation.navigate('Counseling');
+        }
     };
 
     return (
@@ -46,11 +75,15 @@ const Menu = ({ navigation }) => {
                             source={require('../img/man.png')} // Thay thế bằng nguồn hình ảnh thực tế
                         />
                     </TouchableOpacity>
-                    <Text style={{
-                        fontSize: 20,
-                        fontWeight: 'bold',
-                        color: '#FEF9F3',
-                    }}>Nguyen Quang Huy</Text>
+                    {loading ? (
+                        <ActivityIndicator size="large" color="#FEF9F3" />
+                    ) : (
+                        <Text style={{
+                            fontSize: 20,
+                            fontWeight: 'bold',
+                            color: '#FEF9F3',
+                        }}>{fullName}</Text>
+                    )}
                 </View>
 
                 {/* Menu Grid */}
@@ -72,7 +105,7 @@ const Menu = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-                        <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Counseling')}>
+                        <TouchableOpacity style={styles.menuButton} onPress={handleCounselingNavigation}>
                             <Image
                                 style={styles.icon}
                                 source={require('../img/tuvan.png')}
@@ -88,12 +121,12 @@ const Menu = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-                        <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Support')}>
+                        <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Sleep')}>
                             <Image
                                 style={styles.icon}
-                                source={require('../img/phonee.png')}
+                                source={require('../img/sleep.png')}
                             />
-                            <Text style={styles.buttonText}>Support</Text>
+                            <Text style={styles.buttonText}>Sleep</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.menuButton} onPress={handleLogout}>
                             <Image

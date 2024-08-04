@@ -14,6 +14,7 @@ import CheckBox from 'react-native-check-box';
 import auth from '@react-native-firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import firestore from '@react-native-firebase/firestore';
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
@@ -48,7 +49,7 @@ export default function LoginScreen() {
 
         auth()
             .signInWithEmailAndPassword(email, password)
-            .then(async () => {
+            .then(async (userCredential) => {
                 if (isSelected) {
                     try {
                         await AsyncStorage.setItem('email', email);
@@ -67,7 +68,18 @@ export default function LoginScreen() {
                     }
                 }
 
-                ToastAndroid.show('Đăng nhập thành công!', ToastAndroid.SHORT);
+                // Check the user's role in Firestore
+                const uid = userCredential.user.uid;
+                const userDoc = await firestore().collection('users').doc(uid).get();
+                const userData = userDoc.data();
+                const userRole = userData?.role || 'User';
+
+                if (userRole === 'Expert') {
+                    ToastAndroid.show('Chào chuyên gia, bạn đã đăng nhập thành công!', ToastAndroid.SHORT);
+                } else {
+                    ToastAndroid.show('Đăng nhập thành công!', ToastAndroid.SHORT);
+                }
+
                 navigation.navigate('Home');
             })
             .catch(error => {
@@ -164,7 +176,7 @@ export default function LoginScreen() {
                     <Text onPress={() => navigation.navigate('Register')} style={{ color: '#407332' }}>Register</Text>
                 </Text>
                 <Text style={{ color: '#fff', marginTop: 10, fontSize: 16 }}>
-                    Forget Password? Click <Text style={{ color: '#407332' }}>Reset</Text>
+                    Forget Password? Click <Text onPress={() => navigation.navigate('Resetpass')} style={{ color: '#407332' }}>Reset</Text>
                 </Text>
             </View>
         </View>

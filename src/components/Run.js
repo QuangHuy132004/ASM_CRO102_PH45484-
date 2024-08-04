@@ -56,7 +56,7 @@ const Run = ({ navigation }) => {
       .pipe(
         filter(({ x, y, z }) => {
           const acceleration = Math.sqrt(x * x + y * y + z * z);
-          return acceleration > 1.0;
+          return acceleration > 2.0;
         }),
       )
       .subscribe(({ x, y, z }) => {
@@ -156,32 +156,32 @@ const Run = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Sức Khỏe Tập Luyện</Text>
+        <Text style={styles.headerText}> Exercise Health</Text>
       </View>
 
       <View style={styles.stepsContainer}>
-        <Text style={styles.stepsText}>Số bước:</Text>
+        <Text style={styles.stepsText}>Step</Text>
         <Text style={styles.stepsText}>{steps}</Text>
       </View>
 
       <LinearGradient colors={['#407332', '#90EE90']} style={styles.goalContainer}>
         <TextInput
           style={styles.input}
-          placeholder="Nhập mục tiêu số bước"
+          placeholder="Enter a step goal"
           keyboardType="numeric"
           value={inputGoal}
           onChangeText={setInputGoal}
         />
         <TouchableOpacity onPress={handleSetGoal} style={styles.btn}>
-          <Text style={styles.btnText}>Đặt Mục Tiêu</Text>
+          <Text style={styles.btnText}>Set Goals</Text>
         </TouchableOpacity>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={handleStart} style={styles.startBtn}>
-            <Text style={styles.btnText}>Bắt đầu</Text>
+            <Text style={styles.btnText}>Start</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleStop} style={styles.stopBtn}>
-            <Text style={styles.btnText}>Dừng</Text>
+            <Text style={styles.btnText}>Stop</Text>
           </TouchableOpacity>
         </View>
 
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     borderWidth: 10,
     width: 250,
     height: 250,
-    marginLeft: 77,
+    marginLeft: 77,//130
     borderRadius: 125,
     alignItems: 'center',
     marginTop: 60,
@@ -320,6 +320,9 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   menuContainer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-around',
     height: 70,

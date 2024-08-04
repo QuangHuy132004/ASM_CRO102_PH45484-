@@ -259,6 +259,9 @@ const BMI = ({ navigation }) => {
             </LinearGradient>
 
             <View style={{
+                position: 'absolute',
+                bottom: 0,
+                width: '100%',
                 marginTop: 60,
                 alignItems: 'center',
                 flexDirection: 'row',

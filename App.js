@@ -11,6 +11,9 @@ import Menu from './src/components/Menu';
 import Profile from './src/components/Profile';
 import Music2 from './src/components/Music2';
 import Counseling from './src/components/Counseling';
+import Counseling2 from './src/components/Counseling2';
+import Resetpass from './src/components/Resetpass';
+import Sleep from './src/components/Sleep';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +31,9 @@ export default function App() {
         <Stack.Screen name="Profile" component={Profile} />
         <Stack.Screen name="Music2" component={Music2} />
         <Stack.Screen name="Counseling" component={Counseling} />
+        <Stack.Screen name="Counseling2" component={Counseling2} />
+        <Stack.Screen name="Resetpass" component={Resetpass} />
+        <Stack.Screen name="Sleep" component={Sleep} />
       </Stack.Navigator>
     </NavigationContainer>
   );
