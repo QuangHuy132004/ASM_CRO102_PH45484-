@@ -7,7 +7,8 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
-  Alert
+  Alert,
+  SafeAreaView
 } from 'react-native';
 import {
   accelerometer,
@@ -56,7 +57,7 @@ const Run = ({ navigation }) => {
       .pipe(
         filter(({ x, y, z }) => {
           const acceleration = Math.sqrt(x * x + y * y + z * z);
-          return acceleration > 2.0;
+          return acceleration > 2.5;
         }),
       )
       .subscribe(({ x, y, z }) => {
@@ -154,7 +155,7 @@ const Run = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.headerText}> Exercise Health</Text>
       </View>
@@ -211,7 +212,7 @@ const Run = ({ navigation }) => {
           <Image style={styles.menuIcon} source={require('../img/list.png')} />
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
     borderWidth: 10,
     width: 250,
     height: 250,
-    marginLeft: 77,//130
+    marginLeft: 55,//130
     borderRadius: 125,
     alignItems: 'center',
     marginTop: 60,
@@ -254,8 +255,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     margin: 10,
     padding: 20,
-    height: 314,
-    width: 360,
+    height: 300,
+    width: 340,
     alignSelf: 'center',
     borderRadius: 30,
     marginBottom: 39,
@@ -299,7 +300,8 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 20,
+    // margin: 20,
+
   },
   startBtn: {
     backgroundColor: '#4CAF50',

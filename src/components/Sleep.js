@@ -9,7 +9,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import firestore from '@react-native-firebase/firestore';
-import { BarChart } from 'react-native-chart-kit';
+import { LineChart } from 'react-native-chart-kit';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -134,7 +134,7 @@ const HealthyScreen = ({ navigation }) => {
             </View>
 
             {sleepData.labels.length > 0 && (
-                <BarChart
+                <LineChart
                     data={sleepData}
                     width={screenWidth - 40}
                     height={420}
@@ -222,8 +222,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
         paddingHorizontal: 20,
-        marginBottom: 20,
-        marginTop: 60,
+        marginBottom: 0,
+        marginTop: 30,
     },
     cloudImage: {
         width: 140,
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     buttonContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        width: '80%',
+        width: '90%',
     },
     btn01: {
         backgroundColor: '#407332',

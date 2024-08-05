@@ -124,7 +124,7 @@ const Profile = () => {
                 <View style={styles.column}>
                     <Text style={styles.label}>Weight {'(kg)'}</Text>
                     <TextInput
-                        style={[styles.input, { width: 115, fontSize: 17 }]}
+                        style={[styles.input, { width: 90, fontSize: 12 }]}
                         placeholder="kg"
                         value={weight}
                         onChangeText={setWeight}
@@ -133,7 +133,7 @@ const Profile = () => {
                 <View style={styles.column}>
                     <Text style={styles.label}>Height {'(m)'}</Text>
                     <TextInput
-                        style={[styles.input, { width: 115, fontSize: 17 }]}
+                        style={[styles.input, { width: 90, fontSize: 12 }]}
                         placeholder="cm"
                         value={height}
                         onChangeText={setHeight}
@@ -142,7 +142,7 @@ const Profile = () => {
                 <View style={styles.column}>
                     <Text style={styles.label}>Birthday</Text>
                     <TextInput
-                        style={[styles.input, { width: 115, fontSize: 17 }]}
+                        style={[styles.input, { width: 90, fontSize: 12 }]}
                         placeholder="Birthday"
                         value={birthday}
                         onChangeText={setBirthday}
@@ -165,13 +165,13 @@ export default Profile;
 const styles = StyleSheet.create({
     label: {
         marginLeft: 26,
-        fontSize: 16,
+        fontSize: 13,
         fontWeight: '700',
         color: '#000',
     },
     input: {
         height: 50,
-        width: 360,
+        width: 300,
         marginVertical: 8,
         borderWidth: 1,
         padding: 10,

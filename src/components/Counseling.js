@@ -128,7 +128,7 @@ const CounselingScreen = ({ navigation }) => {
                     />
                 </TouchableOpacity>
                 <Text style={{
-                    marginLeft: 50,
+                    marginLeft: 20,
                     fontSize: 20,
                     fontWeight: 'bold',
                     color: '#FEF9F3',

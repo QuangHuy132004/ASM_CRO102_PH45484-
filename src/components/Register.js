@@ -91,7 +91,7 @@ export default function RegisterScreen() {
     <Wrapper disableAvoidStatusBar={true}>
       <View style={{ flex: 1, backgroundColor: '#D7D9A9' }}>
         <Image
-          style={{ width: 400, height: 230, alignSelf: 'center', marginTop: 20 }}
+          style={{ width: 340, height: 230, alignSelf: 'center', marginTop: 10 }}
           source={require('../img/baner.png')}
         />
         <Text
@@ -189,8 +189,8 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   input: {
     height: 52,
-    width: 370,
-    marginVertical: 12,
+    width: 300,
+    marginVertical: 5,
     borderWidth: 1,
     padding: 10,
     backgroundColor: '#fff',

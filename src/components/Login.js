@@ -8,7 +8,8 @@ import {
     TouchableOpacity,
     Alert,
     Image,
-    ToastAndroid
+    ToastAndroid,
+    SafeAreaView
 } from 'react-native';
 import CheckBox from 'react-native-check-box';
 import auth from '@react-native-firebase/auth';
@@ -103,7 +104,7 @@ export default function LoginScreen() {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#D7D9A9' }}>
+        <SafeAreaView style={{ flex: 1, padding:10, backgroundColor: '#D7D9A9' }}>
             <Image
                 style={{ width: 296, height: 281, alignSelf: 'center', marginTop: 10 }}
                 source={require('../img/Giang-blogg.png')}
@@ -114,7 +115,7 @@ export default function LoginScreen() {
                     color: '#fff',
                     fontWeight: 'bold',
                     alignSelf: 'center',
-                    marginTop: 20,
+                    marginTop: 10,
                 }}>
                 Wellcome Back
             </Text>
@@ -125,7 +126,7 @@ export default function LoginScreen() {
                     fontWeight: '400',
                     alignSelf: 'center',
                     marginVertical: 8,
-                    marginBottom: 18
+                    marginBottom: 14
                 }}>
                 Please Log into your existing account
             </Text>
@@ -163,7 +164,7 @@ export default function LoginScreen() {
                     alignItems: 'center',
                     borderRadius: 20,
                     elevation: 2,
-                    margin: 20,
+                    margin: 10,
                 }}
                 onPress={handleLogin}>
                 <Text style={{ fontSize: 16, fontWeight: '800', color: '#fff' }}>
@@ -171,7 +172,7 @@ export default function LoginScreen() {
                 </Text>
             </TouchableOpacity>
             <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ color: '#fff', marginTop: 36, fontSize: 16 }}>
+                <Text style={{ color: '#fff', marginTop: 25, fontSize: 16 }}>
                     Don’t have account? Click{' '}
                     <Text onPress={() => navigation.navigate('Register')} style={{ color: '#407332' }}>Register</Text>
                 </Text>
@@ -179,14 +180,14 @@ export default function LoginScreen() {
                     Forget Password? Click <Text onPress={() => navigation.navigate('Resetpass')} style={{ color: '#407332' }}>Reset</Text>
                 </Text>
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     input: {
         height: 52,
-        width: 370,
+        width: 300,
         marginVertical: 12,
         borderWidth: 1,
         padding: 10,

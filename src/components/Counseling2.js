@@ -71,7 +71,7 @@ const Counseling2 = ({ navigation }) => {
                     />
                 </TouchableOpacity>
                 <Text style={{
-                    marginLeft: -9,
+                    marginLeft: -25,
                     fontSize: 20,
                     fontWeight: 'bold',
                     color: '#FEF9F3',
